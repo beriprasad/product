@@ -1,0 +1,15 @@
+{
+	"name": "adf-prasad-learning01",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "5c5d4d5d-78eb-4833-9473-db40c0d54a6e",
+		"tenantId": "2f6a839f-ae8c-404f-be5c-476fc7e1690e"
+	}
+}
