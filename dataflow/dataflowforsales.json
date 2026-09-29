@@ -1,0 +1,78 @@
+{
+	"name": "dataflowforsales",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_salesfileonly",
+						"type": "DatasetReference"
+					},
+					"name": "sourcedataflow"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_selectedonly",
+						"type": "DatasetReference"
+					},
+					"name": "sinkDL"
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectfewcolumns"
+				},
+				{
+					"name": "filterwhereclause"
+				},
+				{
+					"name": "splitcountrywise"
+				},
+				{
+					"name": "aggregatetoatalsales"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          InvoiceNo as integer,",
+				"          StockCode as string,",
+				"          Description as string,",
+				"          Quantity as integer,",
+				"          InvoiceDate as date,",
+				"          UnitPrice as double,",
+				"          CustomerID as integer,",
+				"          Country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> sourcedataflow",
+				"sourcedataflow select(mapColumn(",
+				"          InvoiceNo,",
+				"          InvoiceDate,",
+				"          UnitPrice,",
+				"          CustomerID,",
+				"          Country",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectfewcolumns",
+				"selectfewcolumns filter(InvoiceNo!= 537669) ~> filterwhereclause",
+				"filterwhereclause split(Country == \"United Kingdom\",",
+				"     Country == \"Australia\",",
+				"     Country == \"Germany\",",
+				"     disjoint: false) ~> splitcountrywise@(UK, Austrlia, Germany, other)",
+				"splitcountrywise@UK aggregate(groupBy(InvoiceNo),",
+				"     UnitPrice = sum(toInteger(UnitPrice))) ~> aggregatetoatalsales",
+				"aggregatetoatalsales sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkDL"
+			]
+		}
+	}
+}
